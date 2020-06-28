@@ -14,32 +14,39 @@ spec:
         run: nginx
     spec:
       containers:
-        - name: nginx-1
-          image: pchahal24/k8s-nginx:latest
-          imagePullPolicy: Always
-          ports:
-            - name: port-80
-              containerPort: 80
-              protocol: TCP
-            - name: port-443
-              containerPort: 443
-              protocol: TCP
-          env:
-            - name: AAD_IDENTITY_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: pc-identity
-                  key: key
-            - name: AAD_IDENTITY_TENANT
-              valueFrom:
-                secretKeyRef:
-                  name: pc-identity
-                  key: tenant
-            - name: AAD_IDENTITY_CLIENTID
-              valueFrom:
-                secretKeyRef:
-                  name: pc-identity
-                  key: clientId
+      - name: nginx-1
+        image: pchahal24/k8s-nginx:latest
+        imagePullPolicy: Always
+        ports:
+          - name: port-80
+            containerPort: 80
+            protocol: TCP
+          - name: port-443
+            containerPort: 443
+            protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 300m
+            memory: 256Mi
+        env:
+        - name: AAD_IDENTITY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pc-identity
+              key: key
+        - name: AAD_IDENTITY_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: pc-identity
+              key: tenant
+        - name: AAD_IDENTITY_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: pc-identity
+              key: clientId
 ---
 apiVersion: v1
 kind: Service
