@@ -72,3 +72,14 @@ spec:
   externalName: aad-identity-service.default.svc.cluster.local
   ports:
   - port: 2424
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: richtable-apis-service
+  namespace: nginx
+spec:
+  type: ExternalName
+  externalName: richtable-apis-service.richtable.svc.cluster.local
+  ports:
+  - port: 5000
