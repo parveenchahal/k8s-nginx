@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: nginx
+spec:
+  selector:
+      matchLabels:
+        run: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      containers:
+        - name: nginx-1
+          image: pchahal24/k8s-nginx:latest
+          imagePullPolicy: Always
+          ports:
+            - name: port-80
+              containerPort: 80
+              protocol: TCP
+            - name: port-443
+              containerPort: 443
+              protocol: TCP
+          env:
+            - name: AAD_IDENTITY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pc-identity
+                  key: key
+            - name: AAD_IDENTITY_TENANT
+              valueFrom:
+                secretKeyRef:
+                  name: pc-identity
+                  key: tenant
+            - name: AAD_IDENTITY_CLIENTID
+              valueFrom:
+                secretKeyRef:
+                  name: pc-identity
+                  key: clientId
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    name: port-80
+    targetPort: 80
+  - port: 443
+    protocol: TCP
+    name: port-443
+    targetPort: 443
+  selector:
+    run: nginx
+  type: LoadBalancer
