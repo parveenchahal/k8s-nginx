@@ -2,7 +2,7 @@ echo "Downloading nginx.conf..."
 wget -O /etc/nginx/nginx.conf "https://pchahal.blob.core.windows.net/nginx/nginx.conf"
 
 echo "Fetching access token for keyvault..."
-identity_url="http://aad-identity-service:2424/$AAD_IDENTITY_TENANT?client_id=$AAD_IDENTITY_CLIENTID&secret=$AAD_IDENTITY_SECRET"
+identity_url="http://aad-identity-service.default:2424/$AAD_IDENTITY_TENANT?client_id=$AAD_IDENTITY_CLIENTID&secret=$AAD_IDENTITY_SECRET"
 identity_url="$identity_url&resource=https://vault.azure.net"
 accesstoken=$(curl -sS $identity_url | jq -r '.access_token')
 
