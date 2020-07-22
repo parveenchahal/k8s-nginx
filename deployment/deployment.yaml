@@ -47,24 +47,3 @@ spec:
             secretKeyRef:
               name: pc-identity
               key: clientId
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx
-  namespace: nginx
-  labels:
-    app: nginx
-spec:
-  ports:
-  - port: 80
-    protocol: TCP
-    name: port-80
-    targetPort: 80
-  - port: 443
-    protocol: TCP
-    name: port-443
-    targetPort: 443
-  selector:
-    run: nginx
-  type: LoadBalancer
