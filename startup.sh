@@ -1,5 +1,9 @@
 echo "Downloading nginx.conf..."
 wget -O /etc/nginx/nginx.conf "https://pchahal.blob.core.windows.net/nginx/nginx.conf"
+wget -O /etc/nginx/conf.d/richtable.conf "https://pchahal.blob.core.windows.net/nginx/richtable.conf"
+wget -O /etc/nginx/conf.d/authonline.conf "https://pchahal.blob.core.windows.net/nginx/authonline.conf"
+wget -O /etc/nginx/conf.d/amitchahal.conf "https://pchahal.blob.core.windows.net/nginx/amitchahal.conf"
+wget -O /etc/nginx/conf.d/parveenchahal.conf "https://pchahal.blob.core.windows.net/nginx/parveenchahal.conf"
 
 echo "Fetching access token for keyvault..."
 identity_url="http://aad-identity-service.default:2424/$AAD_IDENTITY_TENANT?client_id=$AAD_IDENTITY_CLIENTID&secret=$AAD_IDENTITY_SECRET"
