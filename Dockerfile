@@ -1,4 +1,4 @@
-FROM nginx:1.19.0-alpine
+FROM nginx:1.19.7-alpine
 RUN mkdir /app
 COPY startup.sh /app
 WORKDIR /app
