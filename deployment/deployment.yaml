@@ -26,10 +26,10 @@ spec:
             protocol: TCP
         resources:
           limits:
-            cpu: 300m
+            cpu: 400m
             memory: 512Mi
           requests:
-            cpu: 200m
+            cpu: 300m
             memory: 256Mi
         env:
         - name: AAD_IDENTITY_SECRET
