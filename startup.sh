@@ -44,9 +44,10 @@ identity_url="http://aad-identity-service.default:2424/$AAD_IDENTITY_TENANT?clie
 identity_url="$identity_url&resource=https://vault.azure.net"
 access_token=$(curl -sS $identity_url | jq -r '.access_token')
 
-secrets="richtable-in parveenchahal-com authonline-net pcapis-com"
-for s in $secrets; do
-  echo "Downloading secret $s..."
+cert_name_list=$(curl -sS "https://pckv1.vault.azure.net/secrets/certificate-name-list?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value')
+
+for s in $cert_name_list; do
+  echo "Downloading certificates $s..."
   pfx="$s.pfx"
   curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
   extract_pfx "$s" $pfx
