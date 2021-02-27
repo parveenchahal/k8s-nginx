@@ -1,7 +1,32 @@
 extract_pfx() {
   name=$1
   path=$2
-  openssl pkcs12 -clcerts -nokeys -in $path -out "$name.crt" -password pass: -passin pass:
+  openssl pkcs12 -nokeys -in $path -out "$name.crt.temp" -password pass: -passin pass:
+  arrayb=$(grep -n "\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+' | xargs)
+  arraye=$(grep -n "\-\-\-\-\-END CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+')
+  arrayb=($arrayb)
+  arraye=($arraye)
+  l=(9 8 7 6 5 4 3 2 1 0)
+
+  if [ -f "$name.crt" ]
+  then
+    rm "$name.crt"
+  fi
+  touch "$name.crt"
+
+  for i in ${l[@]}
+  do
+    b=${arrayb[$i]}
+    e=${arraye[$i]}
+    if [ ! -z $b ]
+    then
+      echo "-----BEGIN CERTIFICATE-----" >> "$name.crt"
+      awk -v s="$b" -v e="$e" 'NR>s&&NR<e' "$name.crt.temp" >> "$name.crt"
+      echo "-----END CERTIFICATE-----" >> "$name.crt"
+    fi
+  done
+  rm "$name.crt.temp"
+
   openssl pkcs12 -nocerts -in $path -out "$name.key" -password pass: -passin pass: -passout pass:abcxyz
   openssl rsa -in "$name.key" -out "$name.key" -passin pass:abcxyz
 }
@@ -20,12 +45,12 @@ identity_url="$identity_url&resource=https://vault.azure.net"
 access_token=$(curl -sS $identity_url | jq -r '.access_token')
 
 secrets="richtable-in parveenchahal-com authonline-net pcapis-com"
-for i in $secrets; do
-  echo "Downloading secret $i..."
-  pfx="$i.pfx"
-  curl -sS "https://pckv1.vault.azure.net/secrets/$i?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
-  extract_pfx "$i" $pfx
-  mv "$i.crt" "$i.key" /etc/ssl/
+for s in $secrets; do
+  echo "Downloading secret $s..."
+  pfx="$s.pfx"
+  curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
+  extract_pfx "$s" $pfx
+  mv "$s.crt" "$s.key" /etc/ssl/
   rm $pfx
 done
 
