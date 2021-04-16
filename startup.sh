@@ -1,31 +1,37 @@
 extract_pfx() {
   name=$1
   path=$2
-  openssl pkcs12 -nokeys -in $path -out "$name.crt.temp" -password pass: -passin pass:
-  arrayb=$(grep -n "\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+' | xargs)
-  arraye=$(grep -n "\-\-\-\-\-END CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+')
-  arrayb=($arrayb)
-  arraye=($arraye)
-  l=(9 8 7 6 5 4 3 2 1 0)
-
-  if [ -f "$name.crt" ]
+  reverse=$3
+  if [ $reverse -eq 1 ]
   then
-    rm "$name.crt"
-  fi
-  touch "$name.crt"
+    openssl pkcs12 -nokeys -in $path -out "$name.crt.temp" -password pass: -passin pass:
+    arrayb=$(grep -n "\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+' | xargs)
+    arraye=$(grep -n "\-\-\-\-\-END CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+')
+    arrayb=($arrayb)
+    arraye=($arraye)
+    l=(9 8 7 6 5 4 3 2 1 0)
 
-  for i in ${l[@]}
-  do
-    b=${arrayb[$i]}
-    e=${arraye[$i]}
-    if [ ! -z $b ]
+    if [ -f "$name.crt" ]
     then
-      echo "-----BEGIN CERTIFICATE-----" >> "$name.crt"
-      awk -v s="$b" -v e="$e" 'NR>s&&NR<e' "$name.crt.temp" >> "$name.crt"
-      echo "-----END CERTIFICATE-----" >> "$name.crt"
+      rm "$name.crt"
     fi
-  done
-  rm "$name.crt.temp"
+    touch "$name.crt"
+
+    for i in ${l[@]}
+    do
+      b=${arrayb[$i]}
+      e=${arraye[$i]}
+      if [ ! -z $b ]
+      then
+        echo "-----BEGIN CERTIFICATE-----" >> "$name.crt"
+        awk -v s="$b" -v e="$e" 'NR>s&&NR<e' "$name.crt.temp" >> "$name.crt"
+        echo "-----END CERTIFICATE-----" >> "$name.crt"
+      fi
+    done
+    rm "$name.crt.temp"
+  else
+    openssl pkcs12 -nokeys -in $path -out "$name.crt" -password pass: -passin pass:
+  fi
 
   openssl pkcs12 -nocerts -in $path -out "$name.key" -password pass: -passin pass: -passout pass:abcxyz
   openssl rsa -in "$name.key" -out "$name.key" -passin pass:abcxyz
@@ -50,7 +56,18 @@ for s in $cert_name_list; do
   echo "Downloading certificates $s..."
   pfx="$s.pfx"
   curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
-  extract_pfx "$s" $pfx
+  extract_pfx "$s" $pfx 0
+  mv "$s.crt" "$s.key" /etc/ssl/
+  rm $pfx
+done
+
+cert_name_list=$(curl -sS "https://pckv1.vault.azure.net/secrets/certificate-name-list-reverse?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value')
+
+for s in $cert_name_list; do
+  echo "Downloading certificates $s..."
+  pfx="$s.pfx"
+  curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
+  extract_pfx "$s" $pfx 1
   mv "$s.crt" "$s.key" /etc/ssl/
   rm $pfx
 done
