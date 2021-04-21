@@ -41,7 +41,12 @@ echo "Downloading nginx conf list..."
 list=$(curl -S https://pchahal.blob.core.windows.net/nginx/list | tr -d '\r')
 for i in $list; do
   echo "Downloading $i..."
-  wget -O "/etc/nginx/$i" "https://pchahal.blob.core.windows.net/nginx/$i"
+  if [ $i == 'nginx.conf' ]
+  then
+    wget -O "/etc/nginx/$i" "https://pchahal.blob.core.windows.net/nginx/$i"
+  else
+    wget -O "/etc/nginx/conf.d/$i" "https://pchahal.blob.core.windows.net/nginx/$i"
+  fi
 done
 
 echo "Fetching access token for keyvault..."
