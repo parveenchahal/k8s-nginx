@@ -7,7 +7,7 @@ spec:
   selector:
       matchLabels:
         run: nginx
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nginx-1
-        image: pchahal24/k8s-nginx:latest
+        image: pchahal24/k8s-nginx:2021-12-05
         imagePullPolicy: Always
         ports:
           - name: port-80

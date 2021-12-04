@@ -37,22 +37,24 @@ extract_pfx() {
   openssl rsa -in "$name.key" -out "$name.key" -passin pass:abcxyz
 }
 
-echo "Downloading nginx conf list..."
-list=$(curl -S https://pchahal.blob.core.windows.net/nginx/list | tr -d '\r')
-for i in $list; do
-  echo "Downloading $i..."
-  if [ $i == 'nginx.conf' ]
-  then
-    wget -O "/etc/nginx/$i" "https://pchahal.blob.core.windows.net/nginx/$i"
-  else
-    wget -O "/etc/nginx/conf.d/$i" "https://pchahal.blob.core.windows.net/nginx/$i"
-  fi
-done
-
 echo "Fetching access token for keyvault..."
 identity_url="http://aad-identity-service.default:2424/$AAD_IDENTITY_TENANT?client_id=$AAD_IDENTITY_CLIENTID&secret=$AAD_IDENTITY_SECRET"
 identity_url="$identity_url&resource=https://vault.azure.net"
 access_token=$(curl -sS $identity_url | jq -r '.access_token')
+
+github_token=$(curl -sS "https://pckv1.vault.azure.net/secrets/github-token?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value')
+
+echo "Downloading nginx conf list..."
+list=$(curl -sS -H "Authorization: token $github_token" -S https://raw.githubusercontent.com/parveenchahal/pc-ingress-configs/main/list | tr -d '\r')
+for i in $list; do
+  echo "Downloading $i..."
+  output_path="/etc/nginx/conf.d/$i"
+  if [ $i == 'nginx.conf' ]
+  then
+    output_path="/etc/nginx/$i"
+  fi
+  curl -sS -o $output_path -H "Authorization: token $github_token" "https://raw.githubusercontent.com/parveenchahal/pc-ingress-configs/main/$i"
+done
 
 cert_name_list=$(curl -sS "https://pckv1.vault.azure.net/secrets/certificate-name-list?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value')
 
