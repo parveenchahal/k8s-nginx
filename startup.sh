@@ -58,25 +58,31 @@ done
 
 cert_name_list=$(curl -sS "https://pckv1.vault.azure.net/secrets/certificate-name-list?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value')
 
-for s in $cert_name_list; do
-  echo "Downloading certificates $s..."
-  pfx="$s.pfx"
-  curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
-  extract_pfx "$s" $pfx 0
-  mv "$s.crt" "$s.key" /etc/ssl/
-  rm $pfx
-done
+if [ "$cert_name_list" != "null" ]
+then
+  for s in $cert_name_list; do
+    echo "Downloading certificates $s..."
+    pfx="$s.pfx"
+    curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
+    extract_pfx "$s" $pfx 0
+    mv "$s.crt" "$s.key" /etc/ssl/
+    rm $pfx
+  done
+fi
 
 cert_name_list=$(curl -sS "https://pckv1.vault.azure.net/secrets/certificate-name-list-reverse?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value')
 
-for s in $cert_name_list; do
-  echo "Downloading certificates $s..."
-  pfx="$s.pfx"
-  curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
-  extract_pfx "$s" $pfx 1
-  mv "$s.crt" "$s.key" /etc/ssl/
-  rm $pfx
-done
+if [ "$cert_name_list" != "null" ]
+then
+  for s in $cert_name_list; do
+    echo "Downloading certificates $s..."
+    pfx="$s.pfx"
+    curl -sS "https://pckv1.vault.azure.net/secrets/$s?api-version=7.1" -H "Authorization: Bearer $access_token" | jq -r '.value' | base64 -d > $pfx
+    extract_pfx "$s" $pfx 1
+    mv "$s.crt" "$s.key" /etc/ssl/
+    rm $pfx
+  done
+fi
 
 nginx
 

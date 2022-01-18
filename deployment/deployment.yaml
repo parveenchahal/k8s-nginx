@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nginx-1
-        image: pchahal24/k8s-nginx:2021-12-05
+        image: pchahal24/k8s-nginx:2022-01-19
         imagePullPolicy: Always
         ports:
           - name: port-80
