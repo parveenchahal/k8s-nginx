@@ -33,8 +33,7 @@ extract_pfx() {
     openssl pkcs12 -nokeys -in $path -out "$name.crt" -password pass: -passin pass:
   fi
 
-  openssl pkcs12 -nocerts -in $path -out "$name.key" -password pass: -passin pass: -passout pass:abcxyz
-  openssl rsa -in "$name.key" -out "$name.key" -passin pass:abcxyz
+  openssl pkcs12 -nocerts -in $path -out "$name.key" -password pass: -passin pass: -passout pass:
 }
 
 echo "Fetching access token for keyvault..."
