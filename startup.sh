@@ -4,6 +4,7 @@ extract_pfx() {
   reverse=$3
   if [ $reverse -eq 1 ]
   then
+    echo "Extracting cert for $name and will reverse the chain order"
     openssl pkcs12 -nokeys -in $path -out "$name.crt.temp" -password pass: -passin pass:
     arrayb=$(grep -n "\-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+' | xargs)
     arraye=$(grep -n "\-\-\-\-\-END CERTIFICATE\-\-\-\-\-" "$name.crt.temp" | grep -Eo '^[^:]+')
@@ -30,10 +31,17 @@ extract_pfx() {
     done
     rm "$name.crt.temp"
   else
+    echo "Extracting cert for $name"
     openssl pkcs12 -nokeys -in $path -out "$name.crt" -password pass: -passin pass:
   fi
-
-  openssl pkcs12 -nocerts -in $path -out "$name.key" -password pass: -passin pass: -passout pass:
+  echo "Extracting key for $name"
+  openssl pkcs12 -nocerts -in $path -out "$name.key" -password pass: -passin pass: -passout pass:abcxyz
+  openssl ec -in "$name.key" -out "$name.key" -passin pass:abcxyz
+  if [ ! "$?" == 0 ]
+  then
+    echo "Not EC key, trying again with RSA command"
+    openssl rsa -in "$name.key" -out "$name.key" -passin pass:abcxyz
+  fi
 }
 
 echo "Fetching access token for keyvault..."
